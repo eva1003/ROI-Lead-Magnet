@@ -1,0 +1,63 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Custom TipTap editor spacing */
+/* Vertical spacing between consecutive files */
+.tiptap .node-fileNode + .node-fileNode {
+  @apply mt-2;
+}
+
+/* Vertical spacing between files and text content */
+.tiptap .node-fileNode + p {
+  @apply mt-2;
+}
+
+/* Certificates */
+.annotationLayer,
+.textLayer {
+  display: none;
+}
+/* Recreate standard behavior of html-lists */
+@layer base {
+  html {
+    font-feature-settings:
+      'liga' 0,
+      'clig' 0,
+      'dlig' 0,
+      'calt' 0;
+    @apply font-normal;
+  }
+
+  ul,
+  ol {
+    list-style: revert;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    padding-inline-start: 40px;
+  }
+}
+
+/* Custom color picker styles */
+.color-picker-custom {
+  width: 100%;
+
+  .react-colorful__saturation {
+    border-radius: 8px;
+  }
+
+  .react-colorful__hue,
+  .react-colorful__alpha {
+    height: 16px;
+    border-radius: 8px;
+    margin-top: 12px;
+  }
+  .react-colorful__hue-pointer,
+  .react-colorful__alpha-pointer,
+  .react-colorful__saturation-pointer {
+    width: 14px;
+    height: 14px;
+  }
+}
