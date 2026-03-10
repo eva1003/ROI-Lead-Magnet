@@ -78,9 +78,9 @@ const baseInput: SurveyInput = {
   sectionA: {
     companyName: "Test GmbH",
     email: "test@test.de",
-    employeeRange: "<500",
+    employeeRange: "1-99",
     companyType: "Produktion",
-    industry: "Bau",
+    industry: "Baugewerbe",
     revenue: "",
     revenueCurrency: "",
     consentGiven: true,
@@ -511,7 +511,7 @@ describe("computeHours", () => {
         topics: makeTopics({ ccf: "machen_wir_schon" }),
       },
     };
-    const ccfFollowYear = lookupHours("ccf", "Produktion", "<500").followYear;
+    const ccfFollowYear = lookupHours("ccf", "Produktion", "1-99").followYear;
     const h = computeHours(input, []);
     expect(h.currentInternalHours).toBe(ccfFollowYear);
   });
@@ -524,14 +524,14 @@ describe("computeHours", () => {
         topics: makeTopics({ vsme: "wollen_wir_machen" }),
       },
     };
-    const vsmeYear1 = lookupHours("vsme", "Produktion", "<500").year1;
+    const vsmeYear1 = lookupHours("vsme", "Produktion", "1-99").year1;
     const h = computeHours(input, []);
     expect(h.futureInternalHours).toBe(vsmeYear1);
   });
 
   it("futureInternalHours includes recommended features not yet in machen_wir_schon", () => {
     const input: SurveyInput = { ...baseInput };
-    const sbtiYear1 = lookupHours("sbti", "Produktion", "<500").year1;
+    const sbtiYear1 = lookupHours("sbti", "Produktion", "1-99").year1;
     const h = computeHours(input, ["sbti"]);
     expect(h.futureInternalHours).toBe(sbtiYear1);
   });
@@ -544,7 +544,7 @@ describe("computeHours", () => {
         topics: makeTopics({ sbti: "wollen_wir_machen" }),
       },
     };
-    const sbtiYear1 = lookupHours("sbti", "Produktion", "<500").year1;
+    const sbtiYear1 = lookupHours("sbti", "Produktion", "1-99").year1;
     const h = computeHours(input, ["sbti"]);
     expect(h.futureInternalHours).toBe(sbtiYear1);
   });
@@ -784,14 +784,14 @@ describe("computeScorecard (integration)", () => {
 
 describe("lookupHours", () => {
   it("returns correct hours for Produktion < 500", () => {
-    const h = lookupHours("ccf", "Produktion", "<500");
+    const h = lookupHours("ccf", "Produktion", "1-99");
     expect(h.year1).toBeGreaterThan(0);
     expect(h.followYear).toBeGreaterThan(0);
     expect(h.year1).toBeGreaterThan(h.followYear);
   });
   it("larger companies have more hours", () => {
-    const small = lookupHours("csrd", "Produktion", "<500");
-    const large = lookupHours("csrd", "Produktion", "1000+");
+    const small = lookupHours("csrd", "Produktion", "1-99");
+    const large = lookupHours("csrd", "Produktion", ">10.000");
     expect(large.year1).toBeGreaterThan(small.year1);
   });
 });
@@ -803,9 +803,9 @@ describe("validateSectionA", () => {
     const errors = validateSectionA({
       companyName: "Test GmbH",
       email: "test@test.de",
-      employeeRange: "<500",
+      employeeRange: "1-99",
       companyType: "Produktion",
-      industry: "Bau",
+      industry: "Baugewerbe",
       revenue: "",
       revenueCurrency: "",
       consentGiven: true,
@@ -817,9 +817,9 @@ describe("validateSectionA", () => {
     const errors = validateSectionA({
       companyName: "A",
       email: "test@test.de",
-      employeeRange: "<500",
+      employeeRange: "1-99",
       companyType: "Produktion",
-      industry: "Bau",
+      industry: "Baugewerbe",
       revenue: "",
       revenueCurrency: "",
       consentGiven: true,
@@ -831,9 +831,9 @@ describe("validateSectionA", () => {
     const errors = validateSectionA({
       companyName: "Test GmbH",
       email: "keineemail",
-      employeeRange: "<500",
+      employeeRange: "1-99",
       companyType: "Produktion",
-      industry: "Bau",
+      industry: "Baugewerbe",
       revenue: "",
       revenueCurrency: "",
       consentGiven: true,
@@ -874,39 +874,39 @@ describe("validateSectionB", () => {
 
 describe("computeFeatureEstimates", () => {
   it("returns one estimate per recommended feature", () => {
-    const estimates = computeFeatureEstimates(["ccf", "vsme"], "Produktion", "<500");
+    const estimates = computeFeatureEstimates(["ccf", "vsme"], "Produktion", "1-99");
     expect(estimates).toHaveLength(2);
     expect(estimates[0].key).toBe("ccf");
     expect(estimates[1].key).toBe("vsme");
   });
 
   it("baseHours matches year1 from hoursMatrix", () => {
-    const estimates = computeFeatureEstimates(["ccf"], "Produktion", "<500");
-    const expected = lookupHours("ccf", "Produktion", "<500").year1;
+    const estimates = computeFeatureEstimates(["ccf"], "Produktion", "1-99");
+    const expected = lookupHours("ccf", "Produktion", "1-99").year1;
     expect(estimates[0].baseHours).toBe(expected);
   });
 
   it("hoursWithPlanted = round(baseHours * (1 - PLANTED_TIME_REDUCTION_RATE))", () => {
-    const estimates = computeFeatureEstimates(["sbti"], "Dienstleistung", "500-1000");
+    const estimates = computeFeatureEstimates(["sbti"], "Dienstleistung", "501-1.000");
     const e = estimates[0];
     expect(e.hoursWithPlanted).toBe(Math.round(e.baseHours * (1 - PLANTED_TIME_REDUCTION_RATE)));
   });
 
   it("savedHours = round(baseHours * PLANTED_TIME_REDUCTION_RATE)", () => {
-    const estimates = computeFeatureEstimates(["vsme"], "Handel", "1000+");
+    const estimates = computeFeatureEstimates(["vsme"], "Handel", ">10.000");
     const e = estimates[0];
     expect(e.savedHours).toBe(Math.round(e.baseHours * PLANTED_TIME_REDUCTION_RATE));
   });
 
   it("savedMoneyEUR = savedHours * COST_PER_SAVED_HOUR_EUR", () => {
-    const estimates = computeFeatureEstimates(["esg_kpis"], "Produktion", "500-1000");
+    const estimates = computeFeatureEstimates(["esg_kpis"], "Produktion", "501-1.000");
     const e = estimates[0];
     expect(e.savedMoneyEUR).toBe(e.savedHours * COST_PER_SAVED_HOUR_EUR);
   });
 
   it("transformations_workshop uses sustainability_strategy hours", () => {
-    const workshopEstimates = computeFeatureEstimates(["transformations_workshop"], "Produktion", "<500");
-    const strategyEstimates = computeFeatureEstimates(["sustainability_strategy"], "Produktion", "<500");
+    const workshopEstimates = computeFeatureEstimates(["transformations_workshop"], "Produktion", "1-99");
+    const strategyEstimates = computeFeatureEstimates(["sustainability_strategy"], "Produktion", "1-99");
     expect(workshopEstimates[0].baseHours).toBe(strategyEstimates[0].baseHours);
     expect(workshopEstimates[0].noEstimateAvailable).toBe(false);
   });
@@ -917,19 +917,19 @@ describe("computeFeatureEstimates", () => {
       "dnk_gri", "cdp", "stakeholder_questionnaires",
       "sustainability_strategy", "esg_kpis",
     ] as const;
-    const estimates = computeFeatureEstimates([...allTopicKeys], "Produktion", "<500");
+    const estimates = computeFeatureEstimates([...allTopicKeys], "Produktion", "1-99");
     estimates.forEach((e) => {
       expect(e.noEstimateAvailable).toBe(false);
     });
   });
 
   it("returns empty array for empty recommendedFeatures", () => {
-    const estimates = computeFeatureEstimates([], "Produktion", "<500");
+    const estimates = computeFeatureEstimates([], "Produktion", "1-99");
     expect(estimates).toHaveLength(0);
   });
 
   it("label matches RECOMMENDATION_LABELS for each key", () => {
-    const estimates = computeFeatureEstimates(["ccf", "transformations_workshop"], "Produktion", "<500");
+    const estimates = computeFeatureEstimates(["ccf", "transformations_workshop"], "Produktion", "1-99");
     expect(estimates[0].label).toBe("Corporate Carbon Footprint (CCF, Scope 1–3)");
     expect(estimates[1].label).toBe("Transformations-Workshop");
   });

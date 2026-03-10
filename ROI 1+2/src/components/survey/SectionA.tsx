@@ -8,7 +8,10 @@ interface Props {
   errors: Partial<Record<keyof SectionA, string>>;
 }
 
-const EMPLOYEE_RANGES: EmployeeRange[] = ["<500", "500-1000", "1000+"];
+const EMPLOYEE_RANGES: EmployeeRange[] = [
+  "1-99", "100-249", "250-500", "501-1.000",
+  "1.000-5.000", "5.000-10.000", ">10.000",
+];
 const COMPANY_TYPES: CompanyType[] = ["Produktion", "Dienstleistung", "Handel"];
 const CURRENCIES: { value: RevenueCurrency; label: string }[] = [
   { value: "EUR", label: "EUR" },

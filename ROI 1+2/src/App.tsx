@@ -28,6 +28,7 @@ import {
   patchAssessment,
   submitAssessment,
 } from "./logic/apiClient";
+import { saveLead, submitLead, clearLeadSession } from "./logic/supabaseSync";
 import type { FieldErrors } from "./logic/validation";
 
 // ─── Default State ────────────────────────────────────────────────────────────
@@ -137,10 +138,11 @@ export default function App() {
     []
   );
 
-  // Persist on every change
+  // Persist on every change + Supabase autosave
   useEffect(() => {
     saveState(state);
     triggerAutosave(state);
+    saveLead(state.surveyInput, state.currentStep);
   }, [state, triggerAutosave]);
 
   const updateInput = useCallback(
@@ -207,6 +209,8 @@ export default function App() {
           next
         );
       }
+      // Submit to Supabase (fire-and-forget)
+      void submitLead(next.surveyInput, output);
       return next;
     });
     setDirtyAfterScorecard(false);
@@ -235,6 +239,7 @@ export default function App() {
 
   const handleRestart = () => {
     clearState();
+    clearLeadSession();
     setErrors({});
     setState(defaultAppState);
     window.scrollTo({ top: 0, behavior: "smooth" });
