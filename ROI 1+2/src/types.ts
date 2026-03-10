@@ -5,7 +5,7 @@ export const ENABLE_REVENUE = false; // Feature-Flag: Umsatzfeld anzeigen
 
 // ─── Domain Types ────────────────────────────────────────────────────────────
 
-export type EmployeeRange = "<500" | "500-1000" | "1000+";
+export type EmployeeRange = "1-99" | "100-249" | "250-500" | "501-1.000" | "1.000-5.000" | "5.000-10.000" | ">10.000";
 export type CompanyType = "Produktion" | "Dienstleistung" | "Handel";
 export type RevenueCurrency = "EUR" | "USD" | "";
 
@@ -79,25 +79,40 @@ export const ALL_TOPICS: TopicKey[] = [
 ];
 
 export const INDUSTRIES = [
-  "Landwirtschaft/Forst/Fischerei",
-  "Bergbau",
-  "Verarbeitendes Gewerbe/Herstellung",
-  "Energieversorgung",
-  "Wasser/Abwasser/Abfall/Umwelt",
-  "Bau",
-  "Handel/Reparatur Kfz",
-  "Verkehr/Logistik/Lagerei",
-  "Gastgewerbe",
-  "Information/Kommunikation",
-  "Finanzen/Versicherung",
+  "Agentur (Medien, Werbung)",
+  "Architektur und Planung",
+  "Ausbildung",
+  "Baugewerbe",
+  "Beherbergungsbetriebe",
+  "Beratung (Unternehmensberatung)",
+  "Bildungswesen",
+  "Design",
+  "Dienstleistungen für Unternehmen",
+  "Dienstleistungen für Verbraucher",
+  "E-Commerce / Digital Retail",
+  "Einzelhandel",
+  "Energie & Bergbau",
+  "Fertigung / Produktion",
+  "Finanzwesen / -dienstleistungen",
+  "Freizeit & Reisen",
+  "Geisteswissenschaften",
+  "Gesundheitswesen / Sozialwesen",
+  "Hardware & Networking",
   "Immobilien",
-  "Professionelle/wissenschaftliche/technische Dienstleistungen",
-  "Administrative/Support-Services",
+  "Juristische Dienstleistungen",
+  "Konsumgüter",
+  "Landwirtschaft",
+  "Lebensmittel",
+  "Medien & Kommunikation",
+  "Nonprofit",
+  "SaaS / Digitalunternehmen",
+  "Software & IT-Services",
+  "Transportwesen & Logistik",
+  "Unterhaltung",
+  "Wellness & Fitness",
+  "Wirtschaftsprüfer",
+  "Öffentliche Sicherheit",
   "Öffentliche Verwaltung",
-  "Bildung",
-  "Gesundheit/Soziales",
-  "Kunst/Sport/Erholung",
-  "Sonstige Dienstleistungen",
 ] as const;
 
 export type Industry = (typeof INDUSTRIES)[number];

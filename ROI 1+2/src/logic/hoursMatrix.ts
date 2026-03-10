@@ -32,9 +32,17 @@ export interface HoursEntry {
 
 export type InternalCompanyType = "Produzierend" | "Service" | "Handel";
 
+export type MatrixSizeRange = "<500" | "500-1000" | "1000+";
+
+export function toMatrixSizeRange(r: EmployeeRange): MatrixSizeRange {
+  if (r === "501-1.000") return "500-1000";
+  if (r === "1.000-5.000" || r === "5.000-10.000" || r === ">10.000") return "1000+";
+  return "<500"; // 1-99, 100-249, 250-500
+}
+
 type HoursMatrix = Record<
   TopicKey,
-  Record<InternalCompanyType, Record<EmployeeRange, HoursEntry>>
+  Record<InternalCompanyType, Record<MatrixSizeRange, HoursEntry>>
 >;
 
 export const HOURS_MATRIX: HoursMatrix = {
@@ -242,5 +250,6 @@ export function lookupHours(
   employeeRange: EmployeeRange
 ): HoursEntry {
   const internalType = mapCompanyType(companyType);
-  return HOURS_MATRIX[topic][internalType][employeeRange];
+  const sizeRange = toMatrixSizeRange(employeeRange);
+  return HOURS_MATRIX[topic][internalType][sizeRange];
 }
