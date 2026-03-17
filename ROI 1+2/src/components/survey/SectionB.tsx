@@ -84,6 +84,63 @@ export function SectionBForm({ data, onChange, errors }: Props) {
         )}
       </div>
 
+      {showTopics && (
+        <div className="field">
+          <label>
+            ESG-Themen und Status{" "}
+            {isNein && (
+              <span className="hint-inline">
+                (als Planungsgrundlage ausfüllen)
+              </span>
+            )}
+          </label>
+          {isNein && (
+            <p className="hint" style={{ marginBottom: ".75rem" }}>
+              Da Sie noch nicht im ESG-Bereich tätig sind, steht „Machen wir schon" nicht zur Verfügung.
+            </p>
+          )}
+          <div className="topic-matrix">
+            <div className="topic-matrix-header">
+              <span className="topic-name-col">Thema</span>
+              {STATUS_OPTIONS.map((s) => (
+                <span key={s.value} className="topic-status-col">
+                  {s.label}
+                </span>
+              ))}
+            </div>
+            {ALL_TOPICS.map((key) => (
+              <div key={key} className="topic-row">
+                <span className="topic-name-col">
+                  {TOPIC_LABELS[key]}
+                  <Tooltip text={TOPIC_TOOLTIPS[key]} />
+                </span>
+                {STATUS_OPTIONS.map((s) => {
+                  const isDisabled = isNein && s.value === "machen_wir_schon";
+                  return (
+                    <label
+                      key={s.value}
+                      className={`topic-status-col radio-center${isDisabled ? " disabled" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name={`topic-${key}`}
+                        checked={data.topics[key] === s.value}
+                        onChange={() => !isDisabled && setTopic(key, s.value)}
+                        disabled={isDisabled}
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          <p className="topic-matrix-hint">
+            Nicht ausgefüllte Zeilen werden als „Nicht wichtig" gewertet.
+          </p>
+          {errors.topics && <span className="error-msg">{errors.topics}</span>}
+        </div>
+      )}
+
       <div className="field">
         <label>
           Nutzen Sie zusätzlich eine externe ESG-Beratung?{" "}
@@ -140,63 +197,6 @@ export function SectionBForm({ data, onChange, errors }: Props) {
           {errors.consultingHoursPerYear && (
             <span className="error-msg">{errors.consultingHoursPerYear}</span>
           )}
-        </div>
-      )}
-
-      {showTopics && (
-        <div className="field">
-          <label>
-            ESG-Themen und Status{" "}
-            {isNein && (
-              <span className="hint-inline">
-                (als Planungsgrundlage ausfüllen)
-              </span>
-            )}
-          </label>
-          {isNein && (
-            <p className="hint" style={{ marginBottom: ".75rem" }}>
-              Da Sie noch nicht im ESG-Bereich tätig sind, steht „Machen wir schon" nicht zur Verfügung.
-            </p>
-          )}
-          <div className="topic-matrix">
-            <div className="topic-matrix-header">
-              <span className="topic-name-col">Thema</span>
-              {STATUS_OPTIONS.map((s) => (
-                <span key={s.value} className="topic-status-col">
-                  {s.label}
-                </span>
-              ))}
-            </div>
-            {ALL_TOPICS.map((key) => (
-              <div key={key} className="topic-row">
-                <span className="topic-name-col">
-                  {TOPIC_LABELS[key]}
-                  <Tooltip text={TOPIC_TOOLTIPS[key]} />
-                </span>
-                {STATUS_OPTIONS.map((s) => {
-                  const isDisabled = isNein && s.value === "machen_wir_schon";
-                  return (
-                    <label
-                      key={s.value}
-                      className={`topic-status-col radio-center${isDisabled ? " disabled" : ""}`}
-                    >
-                      <input
-                        type="radio"
-                        name={`topic-${key}`}
-                        checked={data.topics[key] === s.value}
-                        onChange={() => !isDisabled && setTopic(key, s.value)}
-                        disabled={isDisabled}
-                      />
-                    </label>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-          <p className="topic-matrix-hint">
-            Nicht ausgefüllte Zeilen werden als „Nicht wichtig" gewertet.
-          </p>
-          {errors.topics && <span className="error-msg">{errors.topics}</span>}
         </div>
       )}
     </div>

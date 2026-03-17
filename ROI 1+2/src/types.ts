@@ -211,6 +211,8 @@ export type MaturityLevel =
 
 export type RiskLevel = "Niedrig" | "Mittel" | "Hoch";
 
+export type RecommendationSource = "system" | "interest" | "system_and_interest";
+
 export interface HoursBreakdown {
   currentInternalHours: number;
   futureInternalHours: number;
@@ -254,6 +256,7 @@ export interface ScorecardOutput {
   alreadyImplemented: TopicKey[];
   recommendedFeatures: RecommendationKey[];
   recommendationReasons: Partial<Record<RecommendationKey, string>>;
+  recommendationSources: Partial<Record<RecommendationKey, RecommendationSource>>;
   stakeholderExposure: StakeholderExposure;
   hoursBreakdown: HoursBreakdown;
   riskScore: RiskScore;

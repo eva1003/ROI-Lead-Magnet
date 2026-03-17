@@ -55,7 +55,7 @@
   --morningsun-40: #FFFCE5;
   --coral: #FFAF94;
   --coral-10: #FFF7F4;
-  --lime: #B4FA64;
+  --lime: #98E1A2;
   --lime-10: #F8FFEF;
   --offwhite: #EBEBEB;
 
@@ -100,78 +100,150 @@ a:hover { color: var(--darkgreen); }
 
 /* ── App Shell ────────────────────────────────────────────────────────────── */
 .app {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 0 3rem;
-}
-
-/* ── Progress Navigation ──────────────────────────────────────────────────── */
-.progress-nav {
   display: flex;
-  align-items: center;
-  background: var(--darkgreen);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: var(--shadow);
+  min-height: 100vh;
+  background: #F0F2F1;
 }
 
-.nav-logo {
-  height: 43px;
-  width: auto;
+/* ── Sidebar ──────────────────────────────────────────────────────────────── */
+.sidebar {
+  width: 220px;
   flex-shrink: 0;
-  padding: 0 1.25rem;
-  border-right: 1px solid rgba(255,255,255,.15);
-}
-
-.progress-step {
-  flex: 1;
+  background: var(--darkgreen);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: .75rem .5rem;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: default;
-  font-size: .78rem;
-  color: var(--darkgreen-25);
-  gap: .25rem;
-  transition: all .2s;
-  font-family: var(--font);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
-.progress-step.clickable { cursor: pointer; }
-.progress-step.clickable:hover { background: rgba(218,196,255,.1); }
+.sidebar-header {
+  padding: 1.5rem 1.25rem 1.25rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .3rem;
+}
 
-.progress-step.active {
-  border-bottom-color: var(--lilac);
+.sidebar-logo {
+  height: 22px;
+  width: auto;
+}
+
+.sidebar-product {
+  font-size: .72rem;
+  color: rgba(255,255,255,.45);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: .5rem 0;
+  flex: 1;
+}
+
+.sidebar-step {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .7rem 1rem .7rem 1.1rem;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: default;
+  font-family: var(--font);
+  font-size: .82rem;
+  color: rgba(255,255,255,.4);
+  text-align: left;
+  transition: all .15s;
+  width: 100%;
+  line-height: 1.3;
+}
+
+.sidebar-step.clickable { cursor: pointer; }
+.sidebar-step.clickable:hover {
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.65);
+}
+
+.sidebar-step.active {
+  border-left-color: var(--lime);
+  background: rgba(255,255,255,.07);
   color: var(--white);
   font-weight: 600;
 }
 
-.progress-step.done {
-  color: var(--lilac);
+.sidebar-step.done {
+  color: rgba(255,255,255,.55);
 }
 
-.step-number {
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  background: var(--darkgreen-75);
-  color: var(--white);
-  display: flex; align-items: center; justify-content: center;
-  font-size: .75rem; font-weight: 700;
-  transition: background .2s;
+.sidebar-step-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: rgba(255,255,255,.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s;
 }
 
-.progress-step.active .step-number { background: var(--lilac); color: var(--darkgreen); }
-.progress-step.done .step-number { background: var(--lime); color: var(--darkgreen); }
+.sidebar-step.active .sidebar-step-icon {
+  background: var(--lime);
+  color: var(--darkgreen);
+}
 
-.step-label { text-align: center; }
+.sidebar-step.done .sidebar-step-icon {
+  background: rgba(152,225,162,.15);
+  color: var(--lime);
+}
+
+.sidebar-step-label { flex: 1; }
+
+/* ── Main Panel ───────────────────────────────────────────────────────────── */
+.main-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ── Main Top Bar ─────────────────────────────────────────────────────────── */
+.main-topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--darkgreen-10);
+  padding: .9rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.main-topbar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--darkgreen);
+}
+
+.main-topbar-counter {
+  font-size: .78rem;
+  color: var(--darkgreen-50);
+  background: var(--darkgreen-10);
+  padding: .25rem .65rem;
+  border-radius: 99px;
+}
 
 /* ── Main Content ─────────────────────────────────────────────────────────── */
 .main-content {
-  padding: 2rem 1.5rem;
+  padding: 2rem;
+  max-width: 960px;
 }
 
 /* ── Section ─────────────────────────────────────────────────────────────── */
@@ -393,6 +465,9 @@ a:hover { color: var(--darkgreen); }
   background: var(--darkgreen);
   font-weight: 600;
   font-size: .78rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   color: var(--white);
   border-bottom: 1px solid var(--darkgreen-75);
   border-radius: var(--radius) var(--radius) 0 0;
@@ -800,6 +875,15 @@ a:hover { color: var(--darkgreen); }
   color: var(--lilac);
 }
 
+.block-risk-note {
+  margin-top: .75rem;
+  font-size: .8rem;
+  color: var(--darkgreen-75);
+  font-style: italic;
+  border-top: 1px solid rgba(0,0,0,.08);
+  padding-top: .5rem;
+}
+
 .block-empty {
   font-size: .875rem;
   color: var(--darkgreen-50);
@@ -847,12 +931,78 @@ a:hover { color: var(--darkgreen); }
 }
 
 .badge-done { background: var(--lime-10); color: var(--darkgreen-75); }
-.badge-rec { background: var(--lilac-40); color: var(--darkgreen); }
+
+/* ── Recommendation list ──────────────────────────────────────────────────── */
+
+.rec-list {
+  list-style: none;
+  margin: .5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.rec-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+}
+
+.rec-dots {
+  display: flex;
+  gap: .25rem;
+  padding-top: .15rem;
+  flex-shrink: 0;
+}
+
+.rec-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.rec-dot--lilac   { background: var(--lilac); }
+.rec-dot--lime    { background: var(--lime); }
+.rec-dot--inactive { opacity: .15; }
+
+.rec-content {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+.rec-name {
+  font-size: .875rem;
+  color: var(--darkgreen);
+  font-weight: 600;
+}
 
 .rec-reason {
-  font-size: .8rem;
+  font-size: .78rem;
   color: var(--darkgreen-50);
   font-style: italic;
+  line-height: 1.4;
+}
+
+/* ── Legend ───────────────────────────────────────────────────────────────── */
+
+.rec-legend {
+  display: flex;
+  gap: 1.2rem;
+  margin-top: .85rem;
+  padding-top: .6rem;
+  border-top: 1px solid var(--darkgreen-10);
+  flex-wrap: wrap;
+}
+
+.rec-legend-item {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .75rem;
+  color: var(--darkgreen-50);
 }
 
 /* ── KPI Rows ────────────────────────────────────────────────────────────── */
@@ -1081,15 +1231,62 @@ a:hover { color: var(--darkgreen); }
 .footer-disclaimer { margin-top: .25rem; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .app { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .sidebar-header {
+    flex-direction: row;
+    align-items: center;
+    gap: .5rem;
+    padding: .75rem 1rem;
+    border-bottom: none;
+    border-right: 1px solid rgba(255,255,255,.1);
+    flex-shrink: 0;
+  }
+
+  .sidebar-product { display: none; }
+
+  .sidebar-nav {
+    flex-direction: row;
+    padding: 0;
+    overflow-x: auto;
+  }
+
+  .sidebar-step {
+    flex-direction: column;
+    gap: .2rem;
+    padding: .6rem .75rem;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    min-width: 70px;
+    align-items: center;
+    text-align: center;
+    font-size: .7rem;
+  }
+
+  .sidebar-step.active { border-bottom-color: var(--lime); border-left-color: transparent; }
+
+  .main-topbar { padding: .75rem 1rem; }
+  .main-content { padding: 1rem; }
+}
+
 @media (max-width: 640px) {
   .scorecard-grid { grid-template-columns: 1fr; }
   .stakeholder-block,
   .finance-block { grid-column: auto; }
   .scorecard-header { flex-direction: column; }
   .scorecard-actions { width: 100%; justify-content: flex-end; }
-  .progress-step { font-size: .68rem; padding: .6rem .25rem; }
-  .step-label { display: none; }
-  .nav-logo { display: none; }
+  .sidebar-step-label { display: none; }
   .topic-matrix-header,
   .topic-row { grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; font-size: .76rem; }
 }
@@ -1541,4 +1738,57 @@ a:hover { color: var(--darkgreen); }
   accent-color: var(--green);
   width: 1rem;
   height: 1rem;
+}
+
+/* ── Print / PDF ─────────────────────────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0.5cm;
+  }
+
+  /* Force background colours and images to print */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide chrome that isn't part of the scorecard */
+  .progress-nav,
+  .scorecard-actions,
+  .cta-block,
+  .feature-chips {
+    display: none !important;
+  }
+
+  /* Remove page chrome and scale the whole scorecard to fit 1–2 A4 pages.
+     zoom: 0.72 → 960 px content renders as ~691 px, fits in A4 portrait (794 px).
+     All heights scale proportionally so 2 000 px of content ≈ 1.6 pages. */
+  body { margin: 0; }
+  .app { padding: 0; background: transparent; }
+  .main-content {
+    padding: 0;
+    max-width: 100%;
+    zoom: 0.72;
+  }
+
+  /* Scorecard: remove shadow/radius, allow content to flow across pages */
+  .scorecard {
+    box-shadow: none;
+    overflow: visible;
+    border-radius: 0;
+  }
+
+  /* Tighter block padding to save vertical space */
+  .score-block { padding: 1rem; }
+
+  /* Keep each block intact — no mid-block page splits */
+  .score-block       { break-inside: avoid; }
+  .estimate-tile     { break-inside: avoid; }
+  .stakeholder-block { grid-column: 1 / -1; break-inside: avoid; }
+  .finance-block     { break-inside: avoid; }
+
+  a[href]::after { content: none; }
 }

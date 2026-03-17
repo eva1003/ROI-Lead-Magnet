@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import plantedLogo from "./assets/planted-logo-lilac.svg";
+import plantedLogo from "./assets/planted-wordmark-white.svg";
 import type {
   AppState,
   SurveyInput,
@@ -81,6 +81,19 @@ const defaultAppState: AppState = {
 };
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
+
+const STEP_ICONS = [
+  // Home / company
+  <svg key="0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  // Leaf / ESG
+  <svg key="1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+  // Network / suppliers
+  <svg key="2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  // Finance / trending
+  <svg key="3" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+  // Chart / results
+  <svg key="4" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>,
+];
 
 const STEPS = [
   { id: 0, label: "Allgemeine Angaben" },
@@ -263,31 +276,45 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Progress bar */}
-      <nav className="progress-nav" aria-label="Fortschritt">
-        <img src={plantedLogo} alt="planted." className="nav-logo" />
-        {STEPS.map((s) => (
-          <button
-            key={s.id}
-            className={[
-              "progress-step",
-              currentStep === s.id ? "active" : "",
-              currentStep > s.id ? "done" : "",
-              s.id < currentStep || scorecardComputed ? "clickable" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            onClick={() => handleStepClick(s.id)}
-            disabled={s.id > currentStep && !scorecardComputed}
-            type="button"
-          >
-            <span className="step-number">{s.id + 1}</span>
-            <span className="step-label">{s.label}</span>
-          </button>
-        ))}
-      </nav>
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <img src={plantedLogo} alt="Planted" className="sidebar-logo" />
+          <span className="sidebar-product">ROI-Rechner</span>
+        </div>
+        <nav className="sidebar-nav" aria-label="Fortschritt">
+          {STEPS.map((s, idx) => (
+            <button
+              key={s.id}
+              className={[
+                "sidebar-step",
+                currentStep === s.id ? "active" : "",
+                currentStep > s.id ? "done" : "",
+                s.id < currentStep || scorecardComputed ? "clickable" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              onClick={() => handleStepClick(s.id)}
+              disabled={s.id > currentStep && !scorecardComputed}
+              type="button"
+            >
+              <span className="sidebar-step-icon">{STEP_ICONS[idx]}</span>
+              <span className="sidebar-step-label">{s.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
 
-      <main className="main-content">
+      {/* Main panel */}
+      <div className="main-panel">
+        <div className="main-topbar">
+          <span className="main-topbar-title">{STEPS[currentStep].label}</span>
+          <span className="main-topbar-counter">
+            Schritt {currentStep + 1} / {STEPS.length}
+          </span>
+        </div>
+
+        <main className="main-content">
         {currentStep === 0 && (
           <SectionAForm
             data={surveyInput.sectionA}
@@ -346,6 +373,7 @@ export default function App() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

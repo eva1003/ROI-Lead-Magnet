@@ -80,6 +80,7 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null;
  * Only fires if sectionA.email is filled (minimum contact info).
  */
 export function saveLead(payload: SurveyInput, step: number): void {
+  if (!payload.sectionA.consentGiven) return;
   if (!payload.sectionA.email) return;
 
   if (saveTimer) clearTimeout(saveTimer);
@@ -118,6 +119,7 @@ export async function submitLead(
   payload: SurveyInput,
   outputs: ScorecardOutput,
 ): Promise<void> {
+  if (!payload.sectionA.consentGiven) return;
   if (saveTimer) {
     clearTimeout(saveTimer);
     saveTimer = null;

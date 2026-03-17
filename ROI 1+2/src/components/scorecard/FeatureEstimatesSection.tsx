@@ -38,7 +38,7 @@ function FeatureTile({ e }: { e: FeatureEstimate }) {
             <span className="estimate-field__value">{e.savedHours} Std.</span>
           </div>
           <div className="estimate-field estimate-field--highlight">
-            <span className="estimate-field__label">Ersparnis</span>
+            <span className="estimate-field__label">Sie sparen</span>
             <span className="estimate-field__value estimate-field__value--money">
               {formatEur(e.savedMoneyEUR)}
             </span>
@@ -126,7 +126,7 @@ export function FeatureEstimatesSection({ estimates }: Props) {
                 <span className="estimate-field__value">{totals.savedHours} Std.</span>
               </div>
               <div className="estimate-field estimate-field--highlight">
-                <span className="estimate-field__label">Ersparnis</span>
+                <span className="estimate-field__label">Sie sparen</span>
                 <span className="estimate-field__value estimate-field__value--money">
                   {formatEur(totals.savedMoneyEUR)}
                 </span>

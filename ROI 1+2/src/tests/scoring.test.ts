@@ -9,6 +9,7 @@ import { ALL_TOPICS } from "../types";
 import {
   computeMaturityLevel,
   computeRecommendations,
+  computeInterestRecommendations,
   computeHours,
   computeRiskScore,
   computeScorecard,
@@ -487,6 +488,163 @@ describe("computeRecommendations", () => {
     const keys = recs.map((r) => r.feature);
     const unique = new Set(keys);
     expect(unique.size).toBe(keys.length);
+  });
+});
+
+// ─── computeInterestRecommendations ───────────────────────────────────────────
+
+describe("computeInterestRecommendations", () => {
+  it("includes topics with wollen_wir_machen", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ pcf: "wollen_wir_machen", dnk_gri: "wollen_wir_machen" }),
+      },
+    };
+    const recs = computeInterestRecommendations(input);
+    const keys = recs.map((r) => r.feature);
+    expect(keys).toContain("pcf");
+    expect(keys).toContain("dnk_gri");
+  });
+
+  it("includes topics with nicht_sicher", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ csrd: "nicht_sicher" }),
+      },
+    };
+    const recs = computeInterestRecommendations(input);
+    expect(recs.map((r) => r.feature)).toContain("csrd");
+  });
+
+  it("excludes topics with machen_wir_schon", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ ccf: "machen_wir_schon" }),
+      },
+    };
+    const recs = computeInterestRecommendations(input);
+    expect(recs.map((r) => r.feature)).not.toContain("ccf");
+  });
+
+  it("excludes topics with nicht_wichtig or empty", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ ecovadis: "nicht_wichtig", sbti: "" }),
+      },
+    };
+    const recs = computeInterestRecommendations(input);
+    const keys = recs.map((r) => r.feature);
+    expect(keys).not.toContain("ecovadis");
+    expect(keys).not.toContain("sbti");
+  });
+
+  it("returns empty when all topics are empty", () => {
+    const recs = computeInterestRecommendations(baseInput);
+    expect(recs).toHaveLength(0);
+  });
+});
+
+// ─── computeScorecard: interest recommendations merge ─────────────────────────
+
+describe("computeScorecard interest recommendations", () => {
+  it("interest-only topic appears in recommendedFeatures", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ pcf: "wollen_wir_machen" }),
+      },
+    };
+    const result = computeScorecard(input, []);
+    expect(result.recommendedFeatures).toContain("pcf");
+    expect(result.recommendationSources["pcf"]).toBe("interest");
+  });
+
+  it("topic in both system and interest gets source system_and_interest", () => {
+    // Path A triggers ccf; ccf is also wollen_wir_machen
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ ccf: "wollen_wir_machen" }),
+      },
+      sectionC: {
+        ...baseInput.sectionC,
+        sustainabilityLinkedBusiness: true,
+        linkedBusinessCount: 2,
+        scopeUnknown: false,
+        requirementsMet: true,
+      },
+    };
+    const result = computeScorecard(input, []);
+    expect(result.recommendationSources["ccf"]).toBe("system_and_interest");
+  });
+
+  it("system-only recommendation gets source system", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionC: {
+        ...baseInput.sectionC,
+        sustainabilityLinkedBusiness: true,
+        linkedBusinessCount: 2,
+        scopeUnknown: false,
+        requirementsMet: true,
+      },
+    };
+    const result = computeScorecard(input, []);
+    expect(result.recommendationSources["ccf"]).toBe("system");
+  });
+
+  it("final recommendedFeatures has no duplicates even with overlap", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ ccf: "wollen_wir_machen", vsme: "nicht_sicher" }),
+      },
+      sectionC: {
+        ...baseInput.sectionC,
+        sustainabilityLinkedBusiness: true,
+        linkedBusinessCount: 2,
+        scopeUnknown: false,
+        requirementsMet: false,
+      },
+    };
+    const result = computeScorecard(input, []);
+    const unique = new Set(result.recommendedFeatures);
+    expect(unique.size).toBe(result.recommendedFeatures.length);
+  });
+
+  it("machen_wir_schon topics never appear as interest recommendations", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ pcf: "machen_wir_schon" }),
+      },
+    };
+    const result = computeScorecard(input, []);
+    expect(result.recommendedFeatures).not.toContain("pcf");
+  });
+
+  it("featureEstimates length matches final recommendedFeatures length", () => {
+    const input: SurveyInput = {
+      ...baseInput,
+      sectionB: {
+        ...baseInput.sectionB,
+        topics: makeTopics({ pcf: "wollen_wir_machen", dnk_gri: "nicht_sicher" }),
+      },
+    };
+    const result = computeScorecard(input, []);
+    expect(result.featureEstimates).toHaveLength(result.recommendedFeatures.length);
   });
 });
 

@@ -1,7 +1,6 @@
 import type {
   ScorecardOutput,
   SurveyInput,
-  ExportPayload,
 } from "../../types";
 import { TOPIC_LABELS, RECOMMENDATION_LABELS } from "../../types";
 import plantedLogo from "../../assets/planted-logo-lilac.svg";
@@ -50,38 +49,11 @@ export function Scorecard({ input, output, onRestart }: Props) {
     alreadyImplemented,
     recommendedFeatures,
     recommendationReasons,
+    recommendationSources,
     riskScore,
     stakeholderExposure,
   } = output;
 
-  const handleExport = () => {
-    // Build wide-friendly per_feature_estimates for tabular export
-    const perFeatureFlat: Record<string, string | number | boolean> = {};
-    output.featureEstimates.slice(0, 10).forEach((est, i) => {
-      const n = i + 1;
-      perFeatureFlat[`feature_estimate_${n}_key`] = est.key;
-      perFeatureFlat[`feature_estimate_${n}_base_hours`] = est.noEstimateAvailable ? "" : est.baseHours;
-      perFeatureFlat[`feature_estimate_${n}_hours_with_planted`] = est.noEstimateAvailable ? "" : est.hoursWithPlanted;
-      perFeatureFlat[`feature_estimate_${n}_saved_hours`] = est.noEstimateAvailable ? "" : est.savedHours;
-      perFeatureFlat[`feature_estimate_${n}_saved_money_eur`] = est.noEstimateAvailable ? "" : est.savedMoneyEUR;
-    });
-
-    const payload: ExportPayload & { per_feature_estimates: typeof perFeatureFlat } = {
-      timestamp: new Date().toISOString(),
-      inputs: input,
-      outputs: output,
-      per_feature_estimates: perFeatureFlat,
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `planted-esg-assessment-${sectionA.companyName.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   const maturityDescriptions: Record<string, string> = {
     Fortgeschritten:
@@ -97,6 +69,21 @@ export function Scorecard({ input, output, onRestart }: Props) {
   // Derive display values for the stakeholder exposure block
   const exp = stakeholderExposure;
   const showDetailedExposure = sectionC.sustainabilityLinkedBusiness === true && !sectionC.scopeUnknown;
+
+  // Stakeholder-Risiko: jeder Stakeholder kann max. 3 Anforderungen haben (SBTi, CDP, CSRD).
+  // Tatsächliche Treffer = Summe aller einzelnen Flags (nicht dedupliziert).
+  // Schwellwerte: >15 % → Hoch, >10 % → Mittel, sonst Niedrig.
+  const totalRequirementMatches =
+    exp.sbtiMatchesCount + exp.cdpMatchesCount + exp.csrdMatchesCount;
+  const maxRequirements = exp.totalStakeholdersProvided * 3;
+  const stakeholderRiskLevel: "Niedrig" | "Mittel" | "Hoch" =
+    maxRequirements === 0
+      ? riskScore.level
+      : totalRequirementMatches / maxRequirements > 0.15
+        ? "Hoch"
+        : totalRequirementMatches / maxRequirements > 0.10
+          ? "Mittel"
+          : "Niedrig";
 
   return (
     <div className="scorecard">
@@ -115,8 +102,8 @@ export function Scorecard({ input, output, onRestart }: Props) {
           <button className="btn-secondary" onClick={onRestart}>
             Neu starten
           </button>
-          <button className="btn-primary" onClick={handleExport}>
-            Export JSON
+          <button className="btn-primary" onClick={() => window.print()}>
+            PDF herunterladen
           </button>
         </div>
       </div>
@@ -124,7 +111,7 @@ export function Scorecard({ input, output, onRestart }: Props) {
       <div className="scorecard-grid">
         {/* Maturity Level */}
         <div className={`score-block maturity ${maturityColor(maturityLevel)}`}>
-          <div className="block-label">ESG Maturity</div>
+          <div className="block-label">ESG Level</div>
           <div className="block-value">{maturityLevel}</div>
           <div className="block-description">
             {maturityDescriptions[maturityLevel] ?? ""}
@@ -135,15 +122,19 @@ export function Scorecard({ input, output, onRestart }: Props) {
         </div>
 
         {/* Risk Level */}
-        <div className={`score-block risk ${riskColor(riskScore.level)}`}>
+        <div className={`score-block risk ${riskColor(stakeholderRiskLevel)}`}>
           <div className="block-label">Stakeholder-Risiko</div>
-          <div className="block-value">{riskScore.level}</div>
-          <div className="block-score">Score: {riskScore.score}/100</div>
+          <div className="block-value">{stakeholderRiskLevel}</div>
           <ul className="block-drivers">
             {riskScore.drivers.map((d, i) => (
               <li key={i}>{d}</li>
             ))}
           </ul>
+          {recommendedFeatures.length > 0 && stakeholderRiskLevel !== "Niedrig" && (
+            <p className="block-risk-note">
+              Mit den Empfehlungen von Planted kann dieses Risiko gezielt minimiert werden.
+            </p>
+          )}
         </div>
 
         {/* Already Implemented */}
@@ -166,20 +157,43 @@ export function Scorecard({ input, output, onRestart }: Props) {
         <div className="score-block">
           <div className="block-label">Empfehlungen von Planted</div>
           {recommendedFeatures.length > 0 ? (
-            <ul className="feature-list recommended">
-              {recommendedFeatures.map((k) => (
-                <li key={k}>
-                  <span className="badge badge-rec">→</span>{" "}
-                  <strong>{RECOMMENDATION_LABELS[k]}</strong>
-                  {recommendationReasons[k] && (
-                    <span className="rec-reason">
-                      {" "}
-                      – {recommendationReasons[k]}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="rec-list">
+                {recommendedFeatures.map((k) => {
+                  const src = recommendationSources[k] ?? "system";
+                  return (
+                    <li key={k} className="rec-item">
+                      <div className="rec-dots">
+                        <span
+                          className={`rec-dot rec-dot--lilac ${src === "interest" ? "rec-dot--inactive" : ""}`}
+                          aria-hidden="true"
+                        />
+                        <span
+                          className={`rec-dot rec-dot--lime ${src === "system" ? "rec-dot--inactive" : ""}`}
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <div className="rec-content">
+                        <strong className="rec-name">{RECOMMENDATION_LABELS[k]}</strong>
+                        {recommendationReasons[k] && (
+                          <span className="rec-reason">{recommendationReasons[k]}</span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="rec-legend">
+                <span className="rec-legend-item">
+                  <span className="rec-dot rec-dot--lilac" aria-hidden="true" />
+                  Erkannte Anforderungen
+                </span>
+                <span className="rec-legend-item">
+                  <span className="rec-dot rec-dot--lime" aria-hidden="true" />
+                  Ihr angegebenes Interesse
+                </span>
+              </div>
+            </>
           ) : (
             <p className="block-empty">Keine zusätzlichen Empfehlungen.</p>
           )}
@@ -192,7 +206,7 @@ export function Scorecard({ input, output, onRestart }: Props) {
 
         {/* Stakeholder Exposure */}
         <div className="score-block stakeholder-block">
-          <div className="block-label">Stakeholder-Exposure</div>
+          <div className="block-label">Stakeholder Risiko</div>
 
           {showDetailedExposure ? (
             /* Ja-Pfad mit bekanntem Scope */
@@ -212,7 +226,7 @@ export function Scorecard({ input, output, onRestart }: Props) {
                 </div>
               )}
               <div className="kpi-row">
-                <span className="kpi-label">Anforderungen erfüllbar</span>
+                <span className="kpi-label">Anforderung derzeit erfüllt</span>
                 <span
                   className={`kpi-value ${sectionC.requirementsMet ? "green" : "red"}`}
                 >

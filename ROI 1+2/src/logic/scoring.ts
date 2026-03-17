@@ -8,6 +8,7 @@ import type {
   TopicKey,
   TopicStatus,
   RecommendationKey,
+  RecommendationSource,
   MaturityLevel,
   RiskLevel,
   HoursBreakdown,
@@ -572,6 +573,38 @@ export function computeFeatureEstimates(
   });
 }
 
+// ─── Interest-Based Recommendations ──────────────────────────────────────────
+
+/**
+ * Returns recommendations derived from topics the user marked as
+ * "wollen_wir_machen" or "nicht_sicher" — independent of the decision tree.
+ */
+export function computeInterestRecommendations(
+  input: SurveyInput
+): RecommendationWithReason[] {
+  const topics = input.sectionB.topics;
+  const result: RecommendationWithReason[] = [];
+
+  for (const key of ALL_TOPICS) {
+    const status = topics[key];
+    if (status === "wollen_wir_machen") {
+      result.push({
+        feature: key,
+        reason:
+          "Sie haben angegeben, dass dieses Thema für Sie relevant ist oder perspektivisch umgesetzt werden soll.",
+      });
+    } else if (status === "nicht_sicher") {
+      result.push({
+        feature: key,
+        reason:
+          "Sie haben angegeben, dass dieses Thema für Sie relevant ist oder perspektivisch umgesetzt werden soll. Dieses Thema wurde als potenziell relevant markiert und sollte geprüft werden.",
+      });
+    }
+  }
+
+  return result;
+}
+
 // ─── Main Scorecard Computation ───────────────────────────────────────────────
 
 export function computeScorecard(
@@ -588,15 +621,33 @@ export function computeScorecard(
 
   const stakeholderExposure = computeStakeholderExposure(input, checkResults);
 
-  const recommendationsWithReasons = computeRecommendations(
-    input,
-    stakeholderExposure
-  );
+  const systemRecs = computeRecommendations(input, stakeholderExposure);
+  const interestRecs = computeInterestRecommendations(input);
 
-  const recommendedFeatures = recommendationsWithReasons.map((r) => r.feature);
+  // Merge: system first, then interest (deduplicated by key)
+  const systemKeySet = new Set(systemRecs.map((r) => r.feature));
+  const interestKeySet = new Set(interestRecs.map((r) => r.feature));
 
+  const recommendationSources: Partial<Record<RecommendationKey, RecommendationSource>> = {};
+  for (const key of systemKeySet) {
+    recommendationSources[key] = interestKeySet.has(key) ? "system_and_interest" : "system";
+  }
+  for (const key of interestKeySet) {
+    if (!systemKeySet.has(key)) {
+      recommendationSources[key] = "interest";
+    }
+  }
+
+  // Build ordered final list: system first, then interest-only additions
+  const finalRecsMap = new Map<RecommendationKey, string>();
+  for (const r of systemRecs) finalRecsMap.set(r.feature, r.reason);
+  for (const r of interestRecs) {
+    if (!finalRecsMap.has(r.feature)) finalRecsMap.set(r.feature, r.reason);
+  }
+
+  const recommendedFeatures = Array.from(finalRecsMap.keys());
   const recommendationReasons = Object.fromEntries(
-    recommendationsWithReasons.map((r) => [r.feature, r.reason])
+    finalRecsMap.entries()
   ) as Partial<Record<RecommendationKey, string>>;
 
   const hoursBreakdown = computeHours(input, recommendedFeatures);
@@ -622,6 +673,7 @@ export function computeScorecard(
     alreadyImplemented,
     recommendedFeatures,
     recommendationReasons,
+    recommendationSources,
     stakeholderExposure,
     hoursBreakdown,
     riskScore,
