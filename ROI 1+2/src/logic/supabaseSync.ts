@@ -112,6 +112,47 @@ export function saveLead(payload: SurveyInput, step: number): void {
 }
 
 /**
+ * Uploads a PDF blob to Supabase Storage (bucket: pdf-reports) and saves
+ * the public URL back to the lead row. Fire-and-forget safe.
+ */
+export async function uploadPdfToStorage(pdfBlob: Blob): Promise<void> {
+  const session = getSession();
+  if (!session) {
+    console.warn("[Supabase] PDF-Upload übersprungen: keine aktive Session (E-Mail/Consent fehlt?)");
+    return;
+  }
+  const { leadId, sessionKey } = session;
+
+  const fileName = `${leadId}.pdf`;
+  console.info("[Supabase] PDF-Upload startet für Lead:", leadId);
+
+  const { error: uploadError } = await supabase.storage
+    .from("pdf-reports")
+    .upload(fileName, pdfBlob, { contentType: "application/pdf", upsert: true });
+
+  if (uploadError) {
+    console.error("[Supabase] PDF-Upload fehlgeschlagen:", uploadError.message, uploadError);
+    return;
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from("pdf-reports")
+    .getPublicUrl(fileName);
+
+  const { error: updateError } = await supabase
+    .from("leads")
+    .update({ pdf_url: publicUrl })
+    .eq("id", leadId)
+    .eq("session_key", sessionKey);
+
+  if (updateError) {
+    console.error("[Supabase] pdf_url konnte nicht gespeichert werden:", updateError.message);
+  } else {
+    console.info("[Supabase] PDF erfolgreich gespeichert:", publicUrl);
+  }
+}
+
+/**
  * Marks the lead as submitted and stores the scorecard outputs.
  * Called immediately (no debounce) when the user reaches the scorecard.
  */

@@ -1034,6 +1034,17 @@ a:hover { color: var(--darkgreen); }
   font-weight: 400;
 }
 
+.block-footnote {
+  margin-top: .6rem;
+  padding: .5rem .75rem;
+  font-size: .75rem;
+  font-weight: 500;
+  color: var(--red);
+  background: var(--red-pale);
+  border-radius: var(--radius);
+  line-height: 1.4;
+}
+
 /* ── Stakeholder Block ───────────────────────────────────────────────────── */
 .stakeholder-block { grid-column: 1 / -1; }
 .finance-block { grid-column: 1 / -1; }

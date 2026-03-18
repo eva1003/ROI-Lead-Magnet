@@ -1,3 +1,4 @@
+import { useEffect, useRef, useCallback } from "react";
 import type {
   ScorecardOutput,
   SurveyInput,
@@ -5,6 +6,8 @@ import type {
 import { TOPIC_LABELS, RECOMMENDATION_LABELS } from "../../types";
 import plantedLogo from "../../assets/planted-logo-lilac.svg";
 import { FeatureEstimatesSection } from "./FeatureEstimatesSection";
+import { uploadPdfToStorage } from "../../logic/supabaseSync";
+import { generateScorecardPdf } from "../../logic/pdfGenerator";
 
 interface Props {
   input: SurveyInput;
@@ -54,6 +57,27 @@ export function Scorecard({ input, output, onRestart }: Props) {
     stakeholderExposure,
   } = output;
 
+  const scorecardRef = useRef<HTMLDivElement>(null);
+
+  // Generate native PDF and auto-upload to Supabase when scorecard first renders
+  const buildPdf = useCallback(
+    () => generateScorecardPdf(input, output),
+    [input, output],
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const blob = await buildPdf();
+          await uploadPdfToStorage(blob);
+        } catch (err) {
+          console.error("[PDF] Fehler beim Erstellen/Hochladen:", err);
+        }
+      })();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [buildPdf]);
 
   const maturityDescriptions: Record<string, string> = {
     Fortgeschritten:
@@ -86,7 +110,7 @@ export function Scorecard({ input, output, onRestart }: Props) {
           : "Niedrig";
 
   return (
-    <div className="scorecard">
+    <div className="scorecard" ref={scorecardRef}>
       {/* Header */}
       <div className="scorecard-header">
         <img src={plantedLogo} alt="planted." className="scorecard-logo-img" />
@@ -102,7 +126,15 @@ export function Scorecard({ input, output, onRestart }: Props) {
           <button className="btn-secondary" onClick={onRestart}>
             Neu starten
           </button>
-          <button className="btn-primary" onClick={() => window.print()}>
+          <button className="btn-primary" onClick={async () => {
+            const blob = await buildPdf();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${sectionA.companyName || "Scorecard"}_Planted_ESG.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }}>
             PDF herunterladen
           </button>
         </div>
@@ -333,7 +365,7 @@ export function Scorecard({ input, output, onRestart }: Props) {
         {/* Finance Block */}
         {sectionD.esgLinkedLoansOrInvestments === true && (
           <div className="score-block finance-block">
-            <div className="block-label">Finance-Exposure</div>
+            <div className="block-label">Zusätzliches finanzielles Risiko</div>
             <div className="kpi-row">
               <span className="kpi-label">Betroffenes Volumen</span>
               <span className="kpi-value">
@@ -357,17 +389,22 @@ export function Scorecard({ input, output, onRestart }: Props) {
               </div>
             )}
             <div className="kpi-row">
-              <span className="kpi-label">ESG-Anforderungen erfüllbar</span>
+              <span className="kpi-label">ESG-Anforderungen derzeit erfüllt</span>
               <span
                 className={`kpi-value ${sectionD.financeRequirementsMet ? "green" : "red"}`}
               >
                 {sectionD.financeRequirementsMet === true
                   ? "Ja"
                   : sectionD.financeRequirementsMet === false
-                    ? "Nein"
+                    ? "Nein*"
                     : "–"}
               </span>
             </div>
+            {sectionD.financeRequirementsMet === false && (
+              <p className="block-footnote">
+                * Durch die Empfehlungen von Planted können die ESG-Anforderungen erfüllt werden.
+              </p>
+            )}
           </div>
         )}
       </div>
